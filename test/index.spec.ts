@@ -22,4 +22,39 @@ describe('Hello World worker', () => {
 		const response = await SELF.fetch('https://example.com');
 		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
 	});
+
+	it('emails', async () => {
+		const ctx = createExecutionContext();
+		const content = "Hello World!";
+
+		// Step 2: Convert the string to Uint8Array
+		const uint8ArrayContent = new TextEncoder().encode(content);
+
+		// Step 3: Create the ReadableStream
+		const readableStream = new ReadableStream<Uint8Array>({
+		start(controller) {
+			controller.enqueue(uint8ArrayContent);
+			controller.close(); // Close the stream after enqueueing the content
+		}
+		});
+
+		const response = await worker.email(
+			{
+				from: 'lol@lol.com',
+				to: 'inbox@corp',
+				raw: readableStream,
+				headers: {
+					'Content-Type': 'text/plain',
+				},
+				setReject: (reason: string) => {
+					// Do nothing
+				},
+				forward: async (to: string) => {
+					// Do nothing
+				},
+			} as any,
+			env,
+			ctx
+		);
+	});
 });
