@@ -109,8 +109,8 @@ export default {
 		await env.AUTO_OTP_FLOW_KV.put(
 			'email:' + message.to,
 			JSON.stringify(value),
-			// Expire the email after 1 hour
-			{ expirationTtl: 60 * 60 }
+			// Expire the email after 30 minutes
+			{ expirationTtl: 30 * 60 }
 		);
 	}
 } satisfies ExportedHandler<Env>;
