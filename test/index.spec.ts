@@ -38,21 +38,56 @@ describe('Hello World worker', () => {
 		}
 		});
 
+		class Email {
+			from: string;
+			to: string;
+			raw: ReadableStream<Uint8Array>;
+			headers: Headers;
+			isSent: boolean;
+			rawSize: number;
+			rejectReason: string | undefined;
+			forwarded_to: string | undefined;
+
+			constructor(from: string, to: string, raw: ReadableStream<Uint8Array>, headers: Record<string, string>) {
+			  this.from = from;
+			  this.to = to;
+			  this.raw = raw;
+			  this.rawSize = 0; // Initially, the raw size is 0
+			  this.headers = new Headers(headers);
+			  this.isSent = false; // Initially, the email is not sent
+			  this.rejectReason = undefined; // No rejection reason initially
+			}
+
+			// Simulate sending the email
+			send() {
+			  // Implement sending logic here
+			  // For example, you might check if `to` address is valid, then set `isSent` accordingly
+			  if (this.to.includes('@')) {
+				this.isSent = true;
+			  } else {
+				this.setReject('Invalid recipient address');
+			  }
+			}
+
+			// Set the rejection reason
+			setReject(reason: string) {
+			  this.rejectReason = reason;
+			  this.isSent = false; // Ensure isSent is false if rejected
+			}
+
+			async forward(to: string) {
+			  this.forwarded_to = to;
+			}
+		  }
+
+		  // Usage
+		  const email = new Email('lol@lol.com', 'inbox@corp', readableStream, {
+			'Content-Type': 'text/plain',
+		  });
+
+
 		const response = await worker.email(
-			{
-				from: 'lol@lol.com',
-				to: 'inbox@corp',
-				raw: readableStream,
-				headers: {
-					'Content-Type': 'text/plain',
-				},
-				setReject: (reason: string) => {
-					// Do nothing
-				},
-				forward: async (to: string) => {
-					// Do nothing
-				},
-			} as any,
+			email,
 			env,
 			ctx
 		);
