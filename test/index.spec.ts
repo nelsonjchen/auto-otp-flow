@@ -23,72 +23,67 @@ describe('Hello World worker', () => {
 		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
 	});
 
-	it('emails', async () => {
+	it('handles emails, stores them, and makes them retrievable', async () => {
 		const ctx = createExecutionContext();
-		const content = "Hello World!";
-
-		// Step 2: Convert the string to Uint8Array
-		const uint8ArrayContent = new TextEncoder().encode(content);
-
-		// Step 3: Create the ReadableStream
-		const readableStream = new ReadableStream<Uint8Array>({
-		start(controller) {
-			controller.enqueue(uint8ArrayContent);
-			controller.close(); // Close the stream after enqueueing the content
-		}
-		});
-
-		class Email {
+		class MockEmail {
 			from: string;
 			to: string;
 			raw: ReadableStream<Uint8Array>;
 			headers: Headers;
-			isSent: boolean;
 			rawSize: number;
 			rejectReason: string | undefined;
 			forwarded_to: string | undefined;
 
-			constructor(from: string, to: string, raw: ReadableStream<Uint8Array>, headers: Record<string, string>) {
-			  this.from = from;
-			  this.to = to;
-			  this.raw = raw;
-			  this.rawSize = 0; // Initially, the raw size is 0
-			  this.headers = new Headers(headers);
-			  this.isSent = false; // Initially, the email is not sent
-			  this.rejectReason = undefined; // No rejection reason initially
+			constructor(from: string, to: string, rawBodyText: string, headers: Record<string, string>) {
+				this.from = from;
+				this.to = to;
+				const uint8ArrayContent = new TextEncoder().encode(rawBodyText);
+				const readableStream = new ReadableStream<Uint8Array>({
+					start(controller) {
+						controller.enqueue(uint8ArrayContent);
+						controller.close(); // Close the stream after enqueueing the content
+					}
+				});
+				this.raw = readableStream;
+				this.rawSize = uint8ArrayContent.length;
+				this.headers = new Headers(headers);
+				this.rejectReason = undefined; // No rejection reason initially
 			}
 
 			// Simulate sending the email
 			send() {
-			  // Implement sending logic here
-			  // For example, you might check if `to` address is valid, then set `isSent` accordingly
-			  if (this.to.includes('@')) {
-				this.isSent = true;
-			  } else {
-				this.setReject('Invalid recipient address');
-			  }
+				// This service has no sending, do not test.
 			}
 
-			// Set the rejection reason
 			setReject(reason: string) {
-			  this.rejectReason = reason;
-			  this.isSent = false; // Ensure isSent is false if rejected
+				this.rejectReason = reason;
 			}
 
 			async forward(to: string) {
-			  this.forwarded_to = to;
+				// This service has no forwarding, do not test.
 			}
-		  }
+		}
 
-		  // Usage
-		  const email = new Email('lol@lol.com', 'inbox@corp', readableStream, {
-		  });
+		// Usage
+		const secret_email_key = 'secret_email_key@service.example';
 
+		const email = new MockEmail(
+			'service_user@example.com',
+			secret_email_key,
+			"Hi, I'm a test email! The OTP is 123456.",
+			{ "Content-Type": "text/plain" });
 
 		await worker.email(
 			email,
 			env,
 			ctx
 		);
+
+		// Check if the KV store has the email (TODO: Use implementation-specific methods to check for the email in the KV store)
+		const storedEmails = await env.AUTO_OTP_FLOW_KV.list({
+			prefix: 'email:' + secret_email_key,
+		});
+		expect(storedEmails).toHaveLength(1);
+
 	});
 });
