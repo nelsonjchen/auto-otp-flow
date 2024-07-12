@@ -106,3 +106,5 @@ compatibility_flags = ["nodejs_compat"]
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+tail_consumers = [{service = "auto-otp-flow-tail"}]
