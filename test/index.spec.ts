@@ -82,11 +82,10 @@ describe('Hello World worker', () => {
 
 		  // Usage
 		  const email = new Email('lol@lol.com', 'inbox@corp', readableStream, {
-			'Content-Type': 'text/plain',
 		  });
 
 
-		const response = await worker.email(
+		await worker.email(
 			email,
 			env,
 			ctx
