@@ -68,9 +68,9 @@ compatibility_flags = ["nodejs_compat"]
 
 # Bind a KV Namespace. Use KV as persistent storage for small key-value pairs.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#kv-namespaces
-# [[kv_namespaces]]
-# binding = "MY_KV_NAMESPACE"
-# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[[kv_namespaces]]
+binding = "AUTO_OTP_FLOW_KV"
+id = "d4a5f70d1d0147e5bf15c13c188f9a2e"
 
 # Bind an mTLS certificate. Use to present a client certificate when communicating with another service.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#mtls-certificates
@@ -106,5 +106,3 @@ compatibility_flags = ["nodejs_compat"]
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
-
-tail_consumers = [{service = "auto-otp-flow-tail"}]
