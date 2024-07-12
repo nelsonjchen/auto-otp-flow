@@ -80,10 +80,14 @@ describe('Hello World worker', () => {
 		);
 
 		// Check if the KV store has the email (TODO: Use implementation-specific methods to check for the email in the KV store)
-		const storedEmails = await env.AUTO_OTP_FLOW_KV.list({
+		const storedEmailsList = await env.AUTO_OTP_FLOW_KV.list({
 			prefix: 'email:' + secret_email_key,
 		});
-		expect(storedEmails).toHaveLength(1);
+		console.log(storedEmailsList);
+		expect(storedEmailsList.keys).toHaveLength(1);
+		// Look at the stored email
+		const storedEmail = await env.AUTO_OTP_FLOW_KV.get('email:' + secret_email_key);
+		console.log(storedEmail);
 
 	});
 });
