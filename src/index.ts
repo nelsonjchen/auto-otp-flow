@@ -11,10 +11,60 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
+
+export interface JsonEmail {
+	processedDateTime: string;
+	to: string;
+	from: string;
+	raw: string;
+	headers: Record<string, string>;
+}
+
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
+	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+		const url = new URL(request.url);
+		// See if the path has "/r/", parse the next part as the email address to retrieve emails for
+		if (url.pathname.startsWith('/r/')) {
+			const emails = await env.AUTO_OTP_FLOW_KV.list<string>({
+				prefix: 'email:' + url.pathname.slice(3),
+			});
+			if (emails.keys.length === 0) {
+				return new Response(JSON.stringify({
+					error: 'No emails found',
+				}), {
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					status: 404
+				});
+			}
+			// Get all the emails and join them into a single array
+			const emailDataPromise = Promise.all(
+				emails.keys.map(async (key) => {
+					const email = await env.AUTO_OTP_FLOW_KV.get<JsonEmail>(
+						key.name,
+						{
+							type: 'json',
+						}
+					) as JsonEmail;
+					return email ? [email] : [];
+				})
+			);
+
+			const emailData = (await emailDataPromise).flat();
+
+			return new Response(JSON.stringify({
+				emails: emailData,
+			}), {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+		}
 		return new Response('Hello World!');
 	},
+
 	async email(message, env, ctx) {
 		const reader = message.raw.getReader();
 		const chunks = [];
@@ -49,7 +99,7 @@ export default {
 
 		// Log the email
 		console.log({
-			message: 'Received email',
+			msg: 'Worker received email',
 			data: {
 				value
 			},
@@ -58,7 +108,9 @@ export default {
 		// Store the email in the KV namespace
 		await env.AUTO_OTP_FLOW_KV.put(
 			'email:' + message.to,
-			JSON.stringify(value)
+			JSON.stringify(value),
+			// Expire the email after 1 hour
+			{ expirationTtl: 60 * 60 }
 		);
 	}
 } satisfies ExportedHandler<Env>;

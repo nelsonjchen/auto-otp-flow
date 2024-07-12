@@ -1,7 +1,7 @@
 // test/index.spec.ts
 import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
-import worker from '../src/index';
+import worker, {JsonEmail} from '../src/index';
 
 // For now, you'll need to do something like this to get a correctly-typed
 // `Request` to pass to `worker.fetch()`.
@@ -71,7 +71,7 @@ describe('Hello World worker', () => {
 			'service_user@example.com',
 			secret_email_key,
 			"Hi, I'm a test email! The OTP is 123456.",
-			{ "Content-Type": "text/plain" });
+			{ "content-type": "text/plain" });
 
 		await worker.email(
 			email,
@@ -83,11 +83,25 @@ describe('Hello World worker', () => {
 		const storedEmailsList = await env.AUTO_OTP_FLOW_KV.list({
 			prefix: 'email:' + secret_email_key,
 		});
-		console.log(storedEmailsList);
 		expect(storedEmailsList.keys).toHaveLength(1);
 		// Look at the stored email
 		const storedEmail = await env.AUTO_OTP_FLOW_KV.get('email:' + secret_email_key);
-		console.log(storedEmail);
 
+		// Now check with fetch
+		const response = await SELF.fetch('https://example.com/r/' + secret_email_key);
+		const responseJson = await response.json() as { emails: JsonEmail[] };
+		expect(responseJson.emails).toHaveLength(1);
+		// Grab the first email
+		const emailData = responseJson.emails[0];
+		// Match the email data except for the processedDateTime, which we just check exists and is a date
+		// Check date
+		expect(new Date(emailData.processedDateTime)).toBeInstanceOf(Date);
+		// Check the rest of the email
+		expect(emailData).toMatchObject({
+			to: secret_email_key,
+			from: 'service_user@example.com',
+			raw: "Hi, I'm a test email! The OTP is 123456.",
+			headers: { "content-type": "text/plain" },
+		});
 	});
 });
