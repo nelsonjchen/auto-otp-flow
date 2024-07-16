@@ -16,6 +16,6 @@ You can email any email address at `470079.xyz` and retrieve the email with a se
 
 Setup your mail client or service to selectively forward the OTP email(s) to your secret target email address. The email will be stored for an hour.
 
-Visit the endpoint `https://470079.xyz/r/<secret_email_address_here_including_domain_name>` to see the list of emails stored in the KV store for that email address. You will get a JSON response with all the emails stored.
+Visit the endpoint `https://470079.xyz/r/<secret_email_address_here_including_domain_name>` to see the list of emails stored in the KV store for that email address. You will get a JSON response with all the emails stored. Emails are stored for 30 minutes max.
 
 It is up to you to parse the JSON, handle sorting, and parse the emails to get the OTP or other information you need though the body is parsed for ease of debugging.
