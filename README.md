@@ -2,6 +2,8 @@
 
 This is a simple Cloudflare Workers service to take incoming email, store it into a KV store temporaily, and permit retrieval of the email with a query. It is to be used for retrieving [One-time password](https://en.wikipedia.org/wiki/One-time_password) calls.
 
+For pure API access, compared to Mailinator's offerings, this is far cheaper, and has far, far higher limits. 
+
 ## Usage
 
 It is an alternative to Mailinator's service that you can use cheaply and re-host should you desire for privacy reasons.
