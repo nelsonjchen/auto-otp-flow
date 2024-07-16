@@ -8,9 +8,9 @@ It is an alternative to Mailinator's service that you can use cheaply and re-hos
 
 A public version of this is hosted at `470079.xyz`.
 
-`.xyz` domains more than 6 numbers long are cheap at a dollar a year and relatively short. A top-level domain is necessary to use the catch-all email functionality of Cloudflare Workers.
+`.xyz` domains more than 6 numbers long are cheap at a dollar a year and relatively short. A top-level domain is necessary to use the catch-all email functionality of Cloudflare Workers on a domain as subdomains aren't supported.
 
-Additionally, it's kind of scary to send to it because it is strange and numeric right? If you care about privacy, you can host this yourself too. It also reminds you that you can do that.
+Additionally, it's kind of scary to send to it because it is strange and numeric right? If you care about privacy, you can host this yourself too. It also reminds you that you can do that. You'll need to change the binding for the KV namespace though. That is an exercise left to you.
 
 You can email any email address at `470079.xyz` and retrieve the email with a secret key being the secret and made-up email address you sent the email to. Use forwarding rules in your email client or service to do so.
 
